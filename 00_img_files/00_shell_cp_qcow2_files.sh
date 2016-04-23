@@ -1,6 +1,6 @@
 #!/bin/bash
 #################################################
-# Filename: 00_shell_cp_qcow2_files
+# Filename: 00_shell_cp_qcow2_files.sh
 # Author:   jerry_0824
 # Email:    63935127##qq.com
 # Date:     2016-04-23
