@@ -1,0 +1,182 @@
+#!/bin/bash
+#################################################
+# Filename: 00_vm_queue.sh
+# Author:   jerry_0824
+# Email:    63935127##qq.com
+# Date:     2016-04-23
+# Version:  v1.0.2
+#################################################
+
+# shutdown
+# ex: virsh shutdown centos7_61
+# for((i = 61; i <= 70; ++i))
+# do
+#     virsh shutdown centos7_$i
+#     echo "virsh shutdown centos7_$i ok!"
+#     echo ""
+#     sleep 0.1
+# done
+# sleep 2s
+
+# virsh undefine
+# ex: virsh undefine centos7_61
+# for((i = 61; i <= 70; ++i))
+# do
+#     virsh undefine centos7_$i
+#     echo "virsh undefine centos7_$i ok!"
+#     echo ""
+#     sleep 0.1
+# done
+# sleep 2s
+
+# rm
+# rm -f ../img_files/centos7_61.qcow2
+# sleep 2s
+
+# cp
+# ex: cp -i centos7_61.qcow2 centos7_62.qcow2
+# for((i = 62; i <= 70; ++i))
+# do 
+#     echo "create file: centos7_$i.qcow2 ..."
+#     cp -i centos7_61.qcow2 centos7_$i.qcow2
+#     echo "create file: centos7_$i.qcow2 ok!"
+#     echo ""
+#     sleep 1
+# done
+# sleep 2s
+
+# qemu-img create
+# ex: qemu-img create -f qcow2 ../img_files/centos7_61.qcow2 5G
+# for((i = 61; i <= 70; ++i))
+# do
+#     qemu-img create -f qcow2 ../img_files/centos7_$i.qcow2 5G
+#     echo "create centos7_$i.qcow2 ok!"
+#     echo ""
+#     sleep 0.1
+# done
+# sleep 2s
+
+# virsh define
+# ex: virsh define 02_virsh_start_centos7_61.xml
+# for((i = 61; i <= 70; ++i))
+# do
+#     virsh define 02_virsh_start_centos7_$i.xml
+#     echo "virsh define centos7_$i ok!"
+#     echo ""
+#     sleep 0.1
+# done
+# sleep 2s
+
+# sleep 2s
+# virsh start
+# ex: virsh start centos7_61
+# for((i = 61; i <= 66; ++i))
+# do
+#     virsh start centos7_$i
+#     echo "virsh shutdown centos7_$i ok!"
+#     echo ""
+#     sleep 0.1
+# done
+
+#################################################
+# function func_calc_cpu_usage
+#################################################
+func_calc_cpu_usage()
+{
+    # get cpu info old
+    cpu_all_info_old=$(cat /proc/stat | grep "cpu" | head -n 1 | awk '{print $2" "$3" "$4" "$5" "$6" "$7" "$8}')
+    cpu_idle_jiffies_old=$(echo $cpu_all_info_old | awk '{print $4}')
+    cpu_total_jiffies_old=$(echo $cpu_all_info_old | awk '{print $1+$2+$3+$4+$5+$6+$7}')
+
+    # sleep
+    sleep 0.1
+
+    # get cpu info new
+    cpu_all_info_new=$(cat /proc/stat | grep "cpu" | head -n 1 | awk '{print $2" "$3" "$4" "$5" "$6" "$7" "$8}')
+    cpu_idle_jiffies_new=$(echo $cpu_all_info_new | awk '{print $4}')
+    cpu_total_jiffies_new=$(echo $cpu_all_info_new | awk '{print $1+$2+$3+$4+$5+$6+$7}')
+
+    # caculate
+    cpu_idle_jiffies_diff=`expr $cpu_idle_jiffies_new - $cpu_idle_jiffies_old`
+    cpu_total_jiffies_diff=`expr $cpu_total_jiffies_new - $cpu_total_jiffies_old`
+    cpu_idle_rate=`expr $cpu_idle_jiffies_diff/$cpu_total_jiffies_diff*100 | bc -l`
+    cpu_usage_rate=`expr 100-$cpu_idle_rate | bc -l`
+    cpu_usage_rate_disp=`expr "scale=3;$cpu_usage_rate/1" | bc -l`
+
+    # format cpu usage rate
+    cpu_usage_rate_disp_format=`printf "%.3f" $cpu_usage_rate_disp`
+
+    # echo cpu usage rate
+    # echo $cpu_usage_rate_disp_format
+
+    # format cpu usage rate to integer
+    cpu_usage_rate_disp_format_int=`printf "%.0f" $cpu_usage_rate_disp`
+    return $cpu_usage_rate_disp_format_int
+}
+
+# loop
+echo "##### Start VM QUEUE #####"
+echo ""
+echo ""
+echo ""
+array_kvm_index=(61 62 63 64 65 66 67 68 69 70)
+current_kvm_index=0
+while true
+do
+    # virsh start
+    for i in ${array_kvm_index[*]}
+    do
+        # echo array_kvm_index
+        echo "### vm id: ${array_kvm_index[*]}"
+
+        # get cpu usage
+        func_calc_cpu_usage
+        cpu_usage_int=$?
+        echo "### cpu usage : $cpu_usage_int%"
+
+        # judge cpu usage
+        if [ $cpu_usage_int -lt 70 ]
+        then
+            virsh start centos7_$i
+            # echo "virsh start centos7_$i ok!"
+            echo "Start centos7_$i ok!"
+            echo ""
+
+            if [ $? -eq 0 ]
+            then
+                # echo current_kvm_index: $current_kvm_index
+                # echo "index0 : ${array_kvm_index[0]}"
+                # echo "index1 : ${array_kvm_index[1]}"
+                unset array_kvm_index[current_kvm_index]
+                let ++current_kvm_index
+                # echo "after unset, current_kvm_index : $current_kvm_index"
+                # echo vm id: ${array_kvm_index[*]}
+                # echo "array size : ${#array_kvm_index[*]}"
+                # echo ""
+                echo ""
+            fi
+        elif [ $cpu_usage_int -ge 70 ]
+        then
+            sleep 1
+            break
+        else
+            echo ""
+        fi
+
+        echo ""
+        sleep 0.1
+    done
+
+    int_array_size=${#array_kvm_index[*]}
+    # echo "array size : ${#array_kvm_index[*]}"
+    if [ $int_array_size -eq 0 ]
+    then
+        echo ""
+        echo "##### Start All VM #####"
+        break
+    fi
+done
+
+echo ""
+echo "##### Finish VM QUEUE #####"
+
