@@ -11,8 +11,7 @@ $ sudo apt-get install qemu-utils
 $ qemu-img create -f qcow2 centos7_71.img 5G
 $ qemu-img create -f qcow2 centos7_71.qcow2 5G
 
-# 安装centos成功后
-# After install successfully
+# After install centos7 successfully
 $ sudo apt-get install qemu-system
 $ qemu-system-x86_64 ./img_files/centos7_71.img -m 512 -enable-kvm
 $ qemu-system-x86_64 ./img_files/centos7_71.img -m 256 -enable-kvm
