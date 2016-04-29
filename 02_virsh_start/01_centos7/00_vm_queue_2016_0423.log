@@ -1,0 +1,208 @@
+##### Start VM QUEUE #####
+
+
+
+### vm id: 61 62 63 64 65 66 67 68 69 70
+### cpu usage : 37%
+域 centos7_61 已开始
+
+Start centos7_61 ok!
+
+
+
+### vm id: 62 63 64 65 66 67 68 69 70
+### cpu usage : 34%
+域 centos7_62 已开始
+
+Start centos7_62 ok!
+
+
+
+### vm id: 63 64 65 66 67 68 69 70
+### cpu usage : 64%
+域 centos7_63 已开始
+
+Start centos7_63 ok!
+
+
+
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 84%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 87%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 87%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 80%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 91%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 96%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 84%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 86%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 81%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 86%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 84%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 76%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 98%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 82%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 84%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 87%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 77%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 80%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 83%
+### vm id: 64 65 66 67 68 69 70
+### cpu usage : 16%
+域 centos7_64 已开始
+
+Start centos7_64 ok!
+
+
+
+### vm id: 65 66 67 68 69 70
+### cpu usage : 46%
+域 centos7_65 已开始
+
+Start centos7_65 ok!
+
+
+
+### vm id: 66 67 68 69 70
+### cpu usage : 65%
+域 centos7_66 已开始
+
+Start centos7_66 ok!
+
+
+
+### vm id: 67 68 69 70
+### cpu usage : 88%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 100%
+### vm id: 67 68 69 70
+### cpu usage : 98%
+### vm id: 67 68 69 70
+### cpu usage : 91%
+### vm id: 67 68 69 70
+### cpu usage : 85%
+### vm id: 67 68 69 70
+### cpu usage : 83%
+### vm id: 67 68 69 70
+### cpu usage : 86%
+### vm id: 67 68 69 70
+### cpu usage : 82%
+### vm id: 67 68 69 70
+### cpu usage : 93%
+### vm id: 67 68 69 70
+### cpu usage : 84%
+### vm id: 67 68 69 70
+### cpu usage : 96%
+### vm id: 67 68 69 70
+### cpu usage : 88%
+### vm id: 67 68 69 70
+### cpu usage : 81%
+### vm id: 67 68 69 70
+### cpu usage : 79%
+### vm id: 67 68 69 70
+### cpu usage : 43%
+域 centos7_67 已开始
+
+Start centos7_67 ok!
+
+
+
+### vm id: 68 69 70
+### cpu usage : 59%
+域 centos7_68 已开始
+
+Start centos7_68 ok!
+
+
+
+### vm id: 69 70
+### cpu usage : 67%
+域 centos7_69 已开始
+
+Start centos7_69 ok!
+
+
+
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 98%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 98%
+### vm id: 70
+### cpu usage : 86%
+### vm id: 70
+### cpu usage : 83%
+### vm id: 70
+### cpu usage : 87%
+### vm id: 70
+### cpu usage : 96%
+### vm id: 70
+### cpu usage : 85%
+### vm id: 70
+### cpu usage : 88%
+### vm id: 70
+### cpu usage : 87%
+### vm id: 70
+### cpu usage : 81%
+### vm id: 70
+### cpu usage : 82%
+### vm id: 70
+### cpu usage : 100%
+### vm id: 70
+### cpu usage : 84%
+### vm id: 70
+### cpu usage : 71%
+### vm id: 70
+### cpu usage : 12%
+域 centos7_70 已开始
+
+Start centos7_70 ok!
+
+
+
+
+##### Start All VM #####
+
+##### Finish VM QUEUE #####
