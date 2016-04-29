@@ -14,3 +14,5 @@ http://libvirt.org/formatdomain.html<br>
 
 04. `sharePolicy='ignore'`<br>
 解决虚拟机只能独享访问的问题，同时可以有多个VNC Client访问虚拟机。<br>
+
+05. 在ubuntu下，使用google chrome自带的开发者工具，对学生上机页面进行编辑，调试。<br>
