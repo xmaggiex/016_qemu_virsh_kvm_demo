@@ -1,0 +1,360 @@
+# 0x00
+01. 用qemu命令来创建虚拟机.
+http://www.chenyudong.com/archives/qemu-install-kvm-vm.html
+02. 使用virsh创建虚拟机
+http://www.chenyudong.com/archives/virsh-create-vm-with-libvirt.html
+03. libvirt从Domain的配置文件启动虚拟机
+http://www.chenyudong.com/archives/qemu-kvm-command-arguments-switch-to-libvirt-xml.html
+04. qemu命令行参数转libvirt的xml文件
+http://www.chenyudong.com/archives/qemu-kvm-command-arguments-switch-to-libvirt-xml.html
+
+
+
+
+# 0x01
+用qemu命令来创建虚拟机.
+http://www.chenyudong.com/archives/qemu-install-kvm-vm.html
+
+
+第一步,创建一个虚拟机的硬盘,将来来存放虚拟操作系统的.这个虚拟硬盘是利用文件系统来进行模拟的.
+1. qemu-img create -f qcow2 vdisk.img 10G
+$ sudo apt-get install qemu-utils
+$ qemu-img create -f qcow2 ubuntu-14.04-server-x64.img 10G
+$ qemu-img create -f qcow2 ubuntu.img 10G
+$ qemu-img create -f qcow2 centos.img 5G
+Formatting 'centos.img', fmt=qcow2 size=5368709120 encryption=off cluster_size=65536 lazy_refcounts=off
+
+qcow2是一种硬盘的格式,比qcow更新,qcow2 is an updated version of the qcow format, intended to supersede it. The main difference with the original is that qcow2 supports multiple virtual machine snapshots through a new, flexible model for storing snapshots. qcow支持数据大小动态的增加.而不是一开始就固定大小了.直接分配那么大的位置占空间
+
+
+第二步,安装iso,并运行
+1. qemu-system-x86_64 -enable-kvm -m 512 -smp 1 -boot order=dc -hda /opt/vdisk.img -cdrom /home/d/Downloads/CentOS-6.4-x86_64-minimal.iso
+$ sudo apt-get install qemu-system
+$ qemu-system-x86-64 -enable-kvm -m 256 -smp 1 -boot order=dc -hda /home/tom/work/kvm_queue/centos.img -cdrom /home/tom/Downloads/CentOS-7-x86_64-Minimal-1511.iso
+其中，-enable-kvm 是使用kvm内核（需要在vmware中针对当前的机器CPU启动VT技术支持）,不用qemu的内核,开启虚拟机加速, -m 512 是给客户机分配512MB内存，-smp 1 是给客户机分配1个CPU，-boot order=dc 是指定系统的启动顺序为光驱(d: CD-ROM)、硬盘(c: hard Disk)，-hda ** 是分配给客户机的IDE硬盘（即前面准备的镜像文件），-cdrom ** 是分配客户机的光驱。
+默认情况下，QEMU会启动一个VNC server端口（如上面的::1:5900），可以用vncviwer工具来连接到QEMU的VNC端口查看客户机。
+出现
+VNC server running on `127.0.0.1:5900'
+这意味着,你的虚拟机已经开启了,并且,开通了一个端口给你,你可以利用5900端口去远程桌面连接.有个图片
+接下来就是普通的安装操作系统了.在安装结束后,我们需要进行重启,可能就出现问题了.这是将原先的虚拟机ctrl+c强制结束了.然后再次运行虚拟机
+
+
+第三步,运行刚刚安装的操作系统
+1. # qemu-system-x86_64 vdisk.img -m 512 -enable-kvm
+If you’re on Fedora/RHEL/CentOS (and installed a kvm package and not built kvm yourself from source) then substitute qemu-kvm for qemu-system-x86_64
+查看进程的一些信息 ps -eLo ruser,pid,ppid,lwp,psr,args | grep qemu
+
+参考: qcow2、raw、vmdk等镜像格式 http://www.prajnagarden.com/?p=248
+运行刚刚安装的操作系统 http://www.linux-kvm.org/page/HOWTO1#Running_the_newly-installed_guest
+
+
+
+# 0x02
+使用virsh创建虚拟机
+http://www.chenyudong.com/archives/virsh-create-vm-with-libvirt.html
+
+第一步,先新建一块虚拟硬盘,这个不多说了,看之前的资料有
+
+第二步,新建一个xml文件,里面存放虚拟机的配置信息,有内存、cpu、硬盘位置、光驱、VNC等配置,我们先贴出一个demo，下载该文件
+
+<domain type="kvm">
+    <name>centos</name>  <!--虚拟机名称-->
+    <memory unit="MiB">1024</memory>   <!--最大内存，单位k-->
+    <currentMemory unit="MiB">1024</currentMemory>  <!--可用内存，单位k-->
+    <vcpu>2</vcpu>   <!--//虚拟cpu个数-->
+    <os>
+        <type arch="x86_64" machine="pc">hvm</type>
+        <boot dev="hd" /> <!-- 硬盘启动 -->
+        <boot dev="cdrom" />     <!--//光盘启动-->
+    </os>
+    <features>
+        <acpi />
+        <apic />
+        <pae />
+    </features>
+    <clock offset="localtime" />
+    <on_poweroff>destroy</on_poweroff>
+    <on_reboot>restart</on_reboot>
+    <on_crash>destroy</on_crash>
+    <devices>
+        <emulator>/usr/libexec/qemu-kvm</emulator>
+        <disk type="file" device="disk">
+            <driver name="qemu" type="qcow2" />
+            <source file="/var/lib/libvirt/images/test.qcow2" />        <!--目的镜像路径-->
+            <target dev="hda" bus="ide" />
+        </disk>
+        <disk type="file" device="cdrom">
+            <source file="/var/lib/libvirt/images/ubuntu.iso" />        <!--光盘镜像路径 -->
+            <target dev="hdb" bus="ide" />
+        </disk>
+        <interface type="bridge">       <!--虚拟机网络连接方式-->
+            <source bridge="br0" />      <!--当前主机网桥的名称-->
+        </interface>
+        <input type="mouse" bus="ps2" />
+        <!--vnc方式登录，端口号自动分配，自动加1，可以通过virsh vncdisplay来查询-->
+        <graphics type="vnc" port="-1" autoport="yes" listen="0.0.0.0" keymap="en-us" />
+    </devices>
+</domain>
+创建虚拟机
+
+virsh define centos.xml   ###将配置导入到虚拟机
+virsh start centos    #### 启动虚拟机
+
+
+
+# 0x03
+libvirt从Domain的配置文件启动虚拟机
+http://www.chenyudong.com/archives/qemu-kvm-command-arguments-switch-to-libvirt-xml.html
+
+虚拟机（有时Domain，guest都表示虚拟机的含义。）可以通过Domain xml文件来进行配置虚拟机。以下是一个demo的配置文件。
+
+<domain type='qemu'>
+  <name>QEmu-fedora-i686</name>
+  <uuid>c7a5fdbd-cdaf-9455-926a-d65c16db1809</uuid>
+  <memory>219200</memory>
+  <currentMemory>219200</currentMemory>
+  <vcpu>2</vcpu>
+  <os>
+    <type arch='i686' machine='pc'>hvm</type>
+    <boot dev='cdrom'/>
+  </os>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='file' device='cdrom'>
+      <source file='/home/user/boot.iso'/>
+      <target dev='hdc'/>
+      <readonly/>
+    </disk>
+    <disk type='file' device='disk'>
+      <source file='/home/user/fedora.img'/>
+       
+<target dev='hda'/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+    </interface>
+    <graphics type='vnc' port='-1'/>
+  </devices>
+</domain>
+然后使用以下命令从xml文件导入到libvirt虚拟机管理软件中。
+
+virsh define demo.xml
+启动虚拟机。其中QEmu-fedora-i686为xml定义的虚拟机别名。
+
+virsh start QEmu-fedora-i686
+
+
+
+
+# 0x04
+qemu命令行参数转libvirt的xml文件
+http://www.chenyudong.com/archives/qemu-kvm-command-arguments-switch-to-libvirt-xml.html
+
+目录 [hide]
+1 libvirt从Domain的配置文件启动虚拟机
+2 使用qemu命令行启动虚拟机
+3 在xml文件里使用任意qemu命令行参数
+4 将QEMU参数转domain XML配置
+5 转化domain XML为QEMU参数
+6 参考资料
+运行虚拟机有多种方式，其中可以使用qemu-system-x86或者qemu-kvm来运行虚拟。另外还可以使用libvirt的virsh命令从xml文件定义来运行虚拟机。而网上许多的教程或者示例使用qemu命令参数来运行的，如果使用libvirt来运行可能会无从下手，不知道对应的参数。
+
+libvirt从Domain的配置文件启动虚拟机
+
+虚拟机（有时Domain，guest都表示虚拟机的含义。）可以通过Domain xml文件来进行配置虚拟机。以下是一个demo的配置文件。
+<domain type='qemu'>
+  <name>QEmu-fedora-i686</name>
+  <uuid>c7a5fdbd-cdaf-9455-926a-d65c16db1809</uuid>
+  <memory>219200</memory>
+  <currentMemory>219200</currentMemory>
+  <vcpu>2</vcpu>
+  <os>
+    <type arch='i686' machine='pc'>hvm</type>
+    <boot dev='cdrom'/>
+  </os>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+    <disk type='file' device='cdrom'>
+      <source file='/home/user/boot.iso'/>
+      <target dev='hdc'/>
+      <readonly/>
+    </disk>
+    <disk type='file' device='disk'>
+      <source file='/home/user/fedora.img'/>
+       
+<target dev='hda'/>
+    </disk>
+    <interface type='network'>
+      <source network='default'/>
+    </interface>
+    <graphics type='vnc' port='-1'/>
+  </devices>
+</domain>
+然后使用以下命令从xml文件导入到libvirt虚拟机管理软件中。
+
+$ virsh define demo.xml
+启动虚拟机。其中QEmu-fedora-i686为xml定义的虚拟机别名。
+
+$ virsh start QEmu-fedora-i686
+使用qemu命令行启动虚拟机
+
+也可以使用qemu命令行启动虚拟机，但是每次都要输入那么长的参数会忘记，所以也可以写个shell脚本来保存参数。类似的，qemu启动虚拟机使用如下命令：
+/usr/bin/qemu-system-x86_64 --enable-kvm \
+  -m 1024 \
+  -smp 1 \
+  -name QEMUGuest1 \
+  -nographic \
+  -monitor pty -no-acpi -boot c \
+  -drive  file=/dev/HostVG/QEMUGuest1,if=ide,index=0 \
+  -net none \
+  -serial none -parallel none -usb
+看到这样长的参数，输入起来当然麻烦了。而且这样运行虚拟机libvirt还没办法直接查询虚拟机的状态。
+
+在xml文件里使用任意qemu命令行参数
+
+有些命令行的参数可以使用xml直接定义出来，但是有些并不能找到对应的xml的标签。但是libvrit为我们提供了一个qemu:commandline来配置xml文件。
+
+例如：
+<domain type='qemu' xmlns:qemu='http://libvirt.org/schemas/domain/qemu/1.0'>
+  <name>QEmu-fedora-i686</name>
+  <memory>219200</memory>
+  <os>
+    <type arch='i686' machine='pc'>hvm</type>
+  </os>
+  <devices>
+    <emulator>/usr/bin/qemu-system-x86_64</emulator>
+  </devices>
+  <qemu:commandline>
+    <qemu:arg value='-newarg'/>
+    <qemu:env name='QEMU_ENV' value='VAL'/>
+  </qemu:commandline>
+</domain>
+Libvirt提供一个XML命名空间和可选类库libvirt-qemu.so来解决qemu的一些特殊情况。当被正确使用时，这些扩展允许测试还没被libvirt的XML和API接口支持qemu的特性。然而，他们是不被支持的，因为该类库不能保证有一个稳定的API接口，滥用这些类库或者xml文件会导致不一致的状态使libvirtd奔溃，升级qemu-kvm或libvirtd会对那么依赖使用qemu特性的虚拟机有破坏性行为。如果你确信需要获得的qemu的特性，请发送RFE给libvirt的mailing list以得到纳入该功能的稳定的libvirt XML和API接口。
+
+这些类库提供两个API：virDomainQemuMonitorCommand，用来发送任意监控命令（monitor command， 包括HMP和QMP格式）给qemu虚拟机 (Since 0.8.3)；virDomainQemuAttach用来注册一个人工启动的qemu虚拟机，这样可以使用libvirtd来管理(Since 0.9.4)。
+
+当启动虚拟机的时候，以下的XML扩展允许给qemu命令行参数。为了使用XML扩展，需要增加一个XML namespace为http://libvirt.org/schemas/domain/qemu/1.0。一般给这namespace取名为qemu，需要增加一个元素<qemu:commandline>，还有两个子元素：
+
+qemu:arg 当启动虚拟机的时候，向qemu进行提供一个命令行参数，将参数放在XML的value属性里。
+
+qemu:env当启动虚拟机的时候，向qemu进行提供一个环境变量， 将 name-value对 放在name属性和可选的vlaue属性里。
+
+将QEMU参数转domain XML配置
+
+命令virsh domxml-from-native提供一个方法将已存在的一组QEMU参数转成可以被libvirt使用Domain XML文件。这个命令的目的用于将先前已经能够从命令行运行的虚拟机转化为用libvirt去管理的XML配置文件。请不要用它来创建一个新虚拟机。新的虚拟机应该由调用libvirt API的程序去创建，或者手工编写XML文件让virsh运行。
+
+需要特别注意的是，在demo.args文件中，不能有换行出现，整个命令要在同一行里。
+$ cat > demo.args <<EOF
+LC_ALL=C PATH=/bin HOME=/home/test USER=test \
+LOGNAME=test /usr/bin/qemu -S -M pc -m 214 -smp 1 \
+-nographic -monitor pty -no-acpi -boot c -hda \
+/dev/HostVG/QEMUGuest1 -net none -serial none \
+-parallel none -usb
+EOF
+ 
+$ virsh domxml-from-native qemu-argv demo.args
+<domain type='qemu'>
+  <uuid>00000000-0000-0000-0000-000000000000</uuid>
+  <memory>219136</memory>
+  <currentMemory>219136</currentMemory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch='i686' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu</emulator>
+    <disk type='block' device='disk'>
+      <source dev='/dev/HostVG/QEMUGuest1'/>
+      <target dev='hda' bus='ide'/>
+    </disk>
+  </devices>
+</domain>
+转化domain XML为QEMU参数
+
+命令virsh domain-to-natice可以将libvirt的Domian XML文件转化成一组QEMU参数。
+
+$ cat > demo.xml <<EOF
+<domain type='qemu'>
+  <name>QEMUGuest1</name>
+  <uuid>c7a5fdbd-edaf-9455-926a-d65c16db1809</uuid>
+  <memory>219200</memory>
+  <currentMemory>219200</currentMemory>
+  <vcpu>1</vcpu>
+  <os>
+    <type arch='i686' machine='pc'>hvm</type>
+    <boot dev='hd'/>
+  </os>
+  <clock offset='utc'/>
+  <on_poweroff>destroy</on_poweroff>
+  <on_reboot>restart</on_reboot>
+  <on_crash>destroy</on_crash>
+  <devices>
+    <emulator>/usr/bin/qemu</emulator>
+    <disk type='block' device='disk'>
+      <source dev='/dev/HostVG/QEMUGuest1'/>
+      <target dev='hda' bus='ide'/>
+    </disk>
+  </devices>
+</domain>
+EOF
+ 
+$ virsh domxml-to-native qemu-argv demo.xml
+  LC_ALL=C PATH=/usr/bin:/bin HOME=/home/test \
+  USER=test LOGNAME=test /usr/bin/qemu -S -M pc \
+  -no-kqemu -m 214 -smp 1 -name QEMUGuest1 -nographic \
+  -monitor pty -no-acpi -boot c -drive \
+  file=/dev/HostVG/QEMUGuest1,if=ide,index=0 -net none \
+  -serial none -parallel none -usb
+参考资料
+
+Domain XML format http://libvirt.org/formatdomain.html
+Switching to libvirt managed QEMU instances http://wiki.libvirt.org/page/QEMUSwitchToLibvirt
+Converting from QEMU args to domain XML http://libvirt.org/drvqemu.html#xmlimport
+
+
+
+0x05. reboot，shutdown，acpi
+01. 命令行virsh reboot vm-name
+kvm目前仍不支持reboot命令，'reboot' is not supported by the hypervisor
+
+[备注_2016_0422]virsh 1.2.2中，已经支持reboot。具体需要再研究
+$ virsh --help | grep "reboot"
+reboot                         重新启动一个域
+
+
+
+02. 虚拟机内部重启操作不成功，状态为关机，重启失败。
+
+原因配置文件中：
+……
+
+<on_poweroff>destroy</on_poweroff>
+<on_reboot>restart</on_reboot>
+<on_crash>destroy</on_crash>
+……
+
+其中<on_reboot> 选项设置为restart则表示在虚拟机内部执行reboot但不关机， 如果设置为destroy则表示执行reboot命令后直接关机。
+
+更多参数设置可参考libvirt官网http://libvirt.org/drvqemu.html#xmlconfig
+
+03. kvm环境下可以使用shutdown命令让虚拟机关机,但不生效。
+virsh shutdown vm-name
+由于关机通过acpi电源管理接口来实现的
+3.1 首先配置文件里需要有这个选项
+  <features>
+    <acpi/>
+    <apic/>
+    <pae/>
+  </features>
+3.2 虚拟机内部需要有acpi服务并运行
+Windowns的虚拟机一般情况是默认已安装且运行的
+linux虚拟机例如Ubuntu虚拟机如果没有安装acpi服务，
+先执行apt-get install acpid进行安装并启动该服务，即可让虚拟机响应shutdown命令
+
+依此方法通过ubuntu server 10.04.2，redhat6.0企业版，windows xp sp3 ,windows server2003操作系统进行验证均可以实现自然关机。
+
